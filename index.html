@@ -24,6 +24,58 @@
       <div class="gameover-message">You lose. You are still a robot.</div>
       <div class="gameover-hint">Refresh the page to try again.</div>
     </div>
+
+    <div id="intro-ask" class="intro">
+      <div class="intro-box">
+        <h2 class="intro-title">Are you a human or a robot?</h2>
+        <div class="intro-options">
+          <label class="intro-option">
+            <input type="checkbox" id="human-check">
+            <span>Human</span>
+          </label>
+          <label class="intro-option">
+            <input type="checkbox" id="robot-check">
+            <span>Robot</span>
+          </label>
+        </div>
+        <button id="intro-continue" class="intro-button" disabled>Continue</button>
+      </div>
+    </div>
+
+    <div id="intro-robot" class="intro hidden">
+      <div class="intro-box">
+        <h2 class="intro-title">Humans Only Beyond This Point</h2>
+        <div class="sad-robot">
+          <svg width="140" height="140" viewBox="0 0 140 140" aria-hidden="true">
+            <line x1="70" y1="30" x2="70" y2="18" stroke="#8a2828" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="70" cy="14" r="5" fill="#c24646" stroke="#8a2828" stroke-width="2"/>
+            <rect x="25" y="30" width="90" height="80" rx="10" fill="#c24646" stroke="#8a2828" stroke-width="3"/>
+            <line x1="42" y1="55" x2="56" y2="69" stroke="#f5f1e8" stroke-width="4" stroke-linecap="round"/>
+            <line x1="56" y1="55" x2="42" y2="69" stroke="#f5f1e8" stroke-width="4" stroke-linecap="round"/>
+            <line x1="84" y1="55" x2="98" y2="69" stroke="#f5f1e8" stroke-width="4" stroke-linecap="round"/>
+            <line x1="98" y1="55" x2="84" y2="69" stroke="#f5f1e8" stroke-width="4" stroke-linecap="round"/>
+            <path d="M 50 92 Q 70 78, 90 92" stroke="#f5f1e8" stroke-width="4" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <button id="try-again" class="intro-button">Try Again</button>
+      </div>
+    </div>
+
+    <div id="intro-name" class="intro hidden">
+      <div class="intro-box">
+        <h2 class="intro-title">Human Player Name</h2>
+        <input type="text" id="name-input" class="intro-input" placeholder="Enter your name" maxlength="30" autocomplete="off">
+        <button id="name-continue" class="intro-button" disabled>Continue</button>
+      </div>
+    </div>
+
+    <div id="intro-meet" class="intro hidden">
+      <div class="intro-box">
+        <h2 class="intro-title">Meet Pip.</h2>
+        <p class="intro-message">He is on an exploration of the human experience.</p>
+        <button id="meet-pip-begin" class="intro-button">Begin</button>
+      </div>
+    </div>
   </div>
   <script src="game.js"></script>
 </body>
