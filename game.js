@@ -32,6 +32,10 @@ let returnStartX = 0;
 let returnStartY = 0;
 let returnProgress = 0;
 
+// Score submission: paste your Google Apps Script Web App URL between the quotes.
+const SCORE_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxqKx39x7yvwngVJQs-EnweZ6f5woZUAPwNhAZ0-mkuDM7K3Tew9m7eqAhl8-G9WiMC/exec";
+let scoreSubmitted = false;
+
 const keys = {};
 
 window.addEventListener("keydown", (e) => {
@@ -705,6 +709,13 @@ function selectChoice(index) {
   if (allAnswered() && score < maxScore) {
     setTimeout(showGameOver, 1500);
   }
+
+  // Once the final answer is locked in, submit the score to the Google Sheet.
+  // The flag prevents double-submits if selectChoice somehow runs again.
+  if (allAnswered() && !scoreSubmitted) {
+    scoreSubmitted = true;
+    submitScore(score === maxScore ? "win" : "lose");
+  }
 }
 
 function allAnswered() {
@@ -716,6 +727,25 @@ function allAnswered() {
 
 function showGameOver() {
   gameover.classList.remove("hidden");
+}
+
+function submitScore(result) {
+  // If the URL hasn't been filled in yet, skip silently — the game still works.
+  if (!SCORE_WEBHOOK_URL || SCORE_WEBHOOK_URL.includes("PASTE_YOUR")) return;
+
+  fetch(SCORE_WEBHOOK_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({
+      name: playerName,
+      score: score,
+      maxScore: maxScore,
+      result: result,
+    }),
+  }).catch((err) => {
+    console.warn("Score submission failed:", err);
+  });
 }
 
 function showFeedback(points) {
@@ -869,6 +899,72 @@ function loop() {
   draw();
   requestAnimationFrame(loop);
 }
+
+// ===== Intro flow (human / robot gate + name capture) =====
+
+let playerName = "";
+
+const introAsk = document.getElementById("intro-ask");
+const introRobot = document.getElementById("intro-robot");
+const introName = document.getElementById("intro-name");
+const introMeet = document.getElementById("intro-meet");
+const humanCheckbox = document.getElementById("human-check");
+const robotCheckbox = document.getElementById("robot-check");
+const introContinueBtn = document.getElementById("intro-continue");
+const tryAgainBtn = document.getElementById("try-again");
+const nameInput = document.getElementById("name-input");
+const nameContinueBtn = document.getElementById("name-continue");
+const meetPipBtn = document.getElementById("meet-pip-begin");
+
+// Only one of Human / Robot can be checked at a time.
+humanCheckbox.addEventListener("change", () => {
+  if (humanCheckbox.checked) robotCheckbox.checked = false;
+  introContinueBtn.disabled = !(humanCheckbox.checked || robotCheckbox.checked);
+});
+robotCheckbox.addEventListener("change", () => {
+  if (robotCheckbox.checked) humanCheckbox.checked = false;
+  introContinueBtn.disabled = !(humanCheckbox.checked || robotCheckbox.checked);
+});
+
+introContinueBtn.addEventListener("click", () => {
+  if (humanCheckbox.checked) {
+    introAsk.classList.add("hidden");
+    introName.classList.remove("hidden");
+    nameInput.focus();
+  } else if (robotCheckbox.checked) {
+    introAsk.classList.add("hidden");
+    introRobot.classList.remove("hidden");
+  }
+});
+
+tryAgainBtn.addEventListener("click", () => {
+  introRobot.classList.add("hidden");
+  humanCheckbox.checked = false;
+  robotCheckbox.checked = false;
+  introContinueBtn.disabled = true;
+  introAsk.classList.remove("hidden");
+});
+
+nameInput.addEventListener("input", () => {
+  nameContinueBtn.disabled = nameInput.value.trim().length === 0;
+});
+
+nameInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && nameInput.value.trim().length > 0) {
+    e.preventDefault();
+    nameContinueBtn.click();
+  }
+});
+
+nameContinueBtn.addEventListener("click", () => {
+  playerName = nameInput.value.trim();
+  introName.classList.add("hidden");
+  introMeet.classList.remove("hidden");
+});
+
+meetPipBtn.addEventListener("click", () => {
+  introMeet.classList.add("hidden");
+});
 
 updateScoreDisplay();
 loop();
