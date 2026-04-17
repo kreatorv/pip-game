@@ -94,7 +94,7 @@ const world = [
   {
     type: "streetlamp",
     x: 275, y: 205,
-    observation: "Another artificial sun. The city has strung them at regular intervals, stitching the night back together. A form of applied hope.",
+    observation: "An artificial sun on a post. The city strings them at regular intervals, stitching the night back together. A form of applied hope.",
     choices: [
       { text: "Catch a single photon mid-flight and hold it still for study", points: 0 },
       { text: "Throw rocks to \"test the glass\"", points: -50 },
@@ -184,7 +184,7 @@ const world = [
   {
     type: "bench",
     x: 650, y: 470, width: 60, height: 12,
-    observation: "Another bench, identical to the other one. Yet I sense humans would prefer one over the other, for reasons they cannot articulate.",
+    observation: "There are two benches in this park. One identical to the other. Yet I sense humans would prefer one over the other, for reasons they cannot articulate.",
     choices: [
       { text: "Survey passersby about bench preferences", points: 0 },
       { text: "Remove the other bench to simplify the decision", points: -50 },
