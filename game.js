@@ -7,6 +7,12 @@ const choicesElement = document.getElementById("choices");
 const feedback = document.getElementById("feedback");
 const scoreElement = document.getElementById("score");
 const gameover = document.getElementById("gameover");
+const eventPopup = document.getElementById("event-popup");
+const eventOuch = document.getElementById("event-ouch");
+const eventMoth = document.getElementById("event-moth");
+const eventChaise = document.getElementById("event-chaise");
+const imperfectHumanBox = document.getElementById("imperfect-human");
+let eventPopupTimer = null;
 
 // Pip's position
 let pipX = 400;
@@ -696,26 +702,67 @@ function selectChoice(index) {
   score += choice.points;
   nearestObservable.answered = true;
 
+  // Show a special event popup for a few specific wrong/neutral answers.
+  checkEventPopup(choice);
+
   showFeedback(choice.points);
   updateScoreDisplay();
   updateChoicesDisplay();
 
-  if (score === maxScore && !capShown) {
-    capShown = true;
+  // End-game tier check: perfect win, imperfect win, or lose.
+  if (allAnswered() && !capShown) {
+    if (score === maxScore) {
+      capShown = true;
+    } else if (score >= 1300 && score <= 1450) {
+      capShown = true;
+      setTimeout(showImperfectHumanMessage, 1500);
+    } else {
+      setTimeout(showGameOver, 1500);
+    }
   }
 
-  // If every observable has been answered but the score is not perfect, lose.
-  // Delay briefly so the player sees their final feedback popup before the overlay.
-  if (allAnswered() && score < maxScore) {
-    setTimeout(showGameOver, 1500);
-  }
-
-  // Once the final answer is locked in, submit the score to the Google Sheet.
-  // The flag prevents double-submits if selectChoice somehow runs again.
+  // Submit the final score to the Google Sheet exactly once.
   if (allAnswered() && !scoreSubmitted) {
     scoreSubmitted = true;
-    submitScore(score === maxScore ? "win" : "lose");
+    const result = score === maxScore
+      ? "win"
+      : (score >= 1300 && score <= 1450)
+        ? "imperfect"
+        : "lose";
+    submitScore(result);
   }
+}
+
+function checkEventPopup(choice) {
+  if (choice.text === "Grab it to examine its feather structure") {
+    showEventPopup("ouch");
+  } else if (choice.text === "Become a moth, briefly, to understand the attraction") {
+    showEventPopup("moth");
+  } else if (choice.text === "Survey passersby about bench preferences") {
+    showEventPopup("chaise");
+  }
+}
+
+function showEventPopup(type) {
+  eventOuch.classList.add("hidden");
+  eventMoth.classList.add("hidden");
+  eventChaise.classList.add("hidden");
+
+  if (type === "ouch") eventOuch.classList.remove("hidden");
+  else if (type === "moth") eventMoth.classList.remove("hidden");
+  else if (type === "chaise") eventChaise.classList.remove("hidden");
+
+  eventPopup.classList.remove("hidden");
+
+  if (eventPopupTimer !== null) clearTimeout(eventPopupTimer);
+  eventPopupTimer = setTimeout(() => {
+    eventPopup.classList.add("hidden");
+    eventPopupTimer = null;
+  }, 2000);
+}
+
+function showImperfectHumanMessage() {
+  imperfectHumanBox.classList.remove("hidden");
 }
 
 function allAnswered() {
@@ -727,6 +774,7 @@ function allAnswered() {
 
 function showGameOver() {
   gameover.classList.remove("hidden");
+  dialogue.classList.add("hidden");
 }
 
 function submitScore(result) {
