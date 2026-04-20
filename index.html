@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Pip</title>
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
   <div class="game-container">
@@ -152,6 +152,98 @@
           <button id="meet-pip-begin" class="intro-button">Begin</button>
         </div>
       </div>
+
+      <div id="level2-continue" class="intro hidden">
+        <div class="intro-box">
+          <h2 class="intro-title">Level 2 Awaits</h2>
+          <p class="intro-message">You have helped Pip learn what it means to be human. Now Pip must try to live among them.</p>
+          <button id="start-level2-btn" class="intro-button">Continue</button>
+        </div>
+      </div>
+
+      <div id="level2-transition" class="intro hidden">
+        <div class="intro-box">
+          <h2 class="intro-title">Most Significant Bit First</h2>
+          <p class="intro-message">A sequence of 0s and 1s has no meaning until it is ordered. The leftmost bit carries the greatest weight. For Pip, the most significant bit of a new life is: where will I sleep. The bits that follow &mdash; what to do all day, how to pay for it &mdash; are lower-order. Pip will solve them in that order.</p>
+          <button id="level2-transition-btn" class="intro-button">Choose Pip's Home</button>
+        </div>
+      </div>
+
+      <div id="housing-selection" class="intro hidden">
+        <div class="intro-box intro-box-wide">
+          <h2 class="intro-title">Where will Pip live?</h2>
+          <p class="intro-message">Pip has $0. Still, a decision must be made.</p>
+          <div class="housing-options">
+            <button class="housing-option" data-home="cardboard" data-rent="0">
+              <div class="housing-option-name">Cardboard Box Under a Bridge</div>
+              <div class="housing-option-rent">$0 / month</div>
+            </button>
+            <button class="housing-option" data-home="brownstone" data-rent="5000">
+              <div class="housing-option-name">Brownstone Apartment</div>
+              <div class="housing-option-rent">$5,000 / month</div>
+            </button>
+            <button class="housing-option" data-home="picketfence" data-rent="9000">
+              <div class="housing-option-name">House with White Picket Fence</div>
+              <div class="housing-option-rent">$9,000 / month</div>
+            </button>
+            <button class="housing-option" data-home="penthouse" data-rent="20000">
+              <div class="housing-option-name">Penthouse Condo</div>
+              <div class="housing-option-rent">$20,000 / month</div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="job-intro" class="intro hidden">
+        <div class="intro-box">
+          <h2 class="intro-title">Home Selected</h2>
+          <p class="intro-message">Pip has an address. Now he must choose what to do all day to pay for it.</p>
+          <button id="job-intro-btn" class="intro-button">Find a Job</button>
+        </div>
+      </div>
+
+      <div id="job-selection" class="intro hidden">
+        <div class="intro-box intro-box-wide">
+          <h2 class="intro-title">What will Pip do all day?</h2>
+          <p class="intro-message">A livelihood must be chosen.</p>
+          <div class="housing-options">
+            <button class="housing-option" data-job="pigeon" data-salary="500">
+              <div class="housing-option-name">Professional Pigeon Translator</div>
+              <div class="housing-option-rent">$500 / month</div>
+            </button>
+            <button class="housing-option" data-job="poetry" data-salary="3000">
+              <div class="housing-option-name">Freelance Poetry Generator</div>
+              <div class="housing-option-rent">$3,000 / month</div>
+            </button>
+            <button class="housing-option" data-job="chatbot" data-salary="7000">
+              <div class="housing-option-name">Personal Shopping Chatbot for People Who Shop on Tuesdays and Have Lunch Afterwards</div>
+              <div class="housing-option-rent">$7,000 / month</div>
+            </button>
+            <button class="housing-option" data-job="laundry" data-salary="12000">
+              <div class="housing-option-name">Secret AI Laundry Agent</div>
+              <div class="housing-option-rent">$12,000 / month</div>
+            </button>
+            <button class="housing-option" data-job="founder" data-salary="25000">
+              <div class="housing-option-name">Founder</div>
+              <div class="housing-option-rent">$25,000 / month</div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="ending-win" class="intro hidden">
+        <div class="intro-box intro-box-wide">
+          <h2 class="intro-title">Pip is Home</h2>
+          <p class="intro-message" id="ending-win-message"></p>
+          <div class="intro-hint">Refresh the page to play again.</div>
+        </div>
+      </div>
+
+      <div id="ending-lose" class="gameover hidden">
+        <div class="gameover-title">GAME OVER</div>
+        <div class="gameover-message" id="ending-lose-message"></div>
+        <div class="gameover-hint">Refresh the page to play again.</div>
+      </div>
     </div>
 
     <aside class="dialogue-sidebar">
@@ -167,6 +259,6 @@
       </div>
     </aside>
   </div>
-  <script src="game.js?v=3"></script>
+  <script src="game.js?v=4"></script>
 </body>
 </html>
