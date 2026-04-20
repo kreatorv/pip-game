@@ -42,6 +42,16 @@ let returnProgress = 0;
 const SCORE_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxqKx39x7yvwngVJQs-EnweZ6f5woZUAPwNhAZ0-mkuDM7K3Tew9m7eqAhl8-G9WiMC/exec";
 let scoreSubmitted = false;
 
+// Level 2 state
+let currentLevel = 1;
+let returnComplete = false;
+let selectedHome = null;
+
+// TEMPORARY dev shortcut — set to true to jump straight from "Meet Pip"
+// into the Level 2 entry state so we can iterate on Level 2 without replaying
+// Level 1 every time. Flip back to false before shipping to friends.
+const SKIP_LEVEL_1 = false;
+
 const keys = {};
 
 window.addEventListener("keydown", (e) => {
@@ -57,7 +67,7 @@ window.addEventListener("keyup", (e) => {
   keys[e.key] = false;
 });
 
-const world = [
+let world = [
   {
     type: "park",
     x: 0, y: 380, width: 800, height: 220,
@@ -218,6 +228,59 @@ const world = [
     ],
   },
 ];
+
+// Level 2 world — four housing options. No choices; just observations + a "visited" flag.
+// The larger `range` values let Pip detect each house from further away, since
+// these objects are drawn centered on (x, y) and don't have width/height like Level 1 buildings.
+const worldLevel2 = [
+  {
+    type: "cardboardbox",
+    x: 130, y: 460,
+    range: 180,
+    observation: "A brown cardboard box beneath a bridge. Monthly rent: $0. A damp blanket, an extension cord, and a Post-it note reading \"good luck\" remain from a previous tenant. This is within my budget, which is also $0.",
+    rent: 0,
+    homeId: "cardboard",
+    name: "cardboard box under a bridge",
+  },
+  {
+    type: "brownstone",
+    x: 260, y: 150,
+    range: 180,
+    observation: "A brownstone apartment. Monthly rent: $5,000. The building is a hundred years old and smells faintly of other people's cooking, which I understand is desirable. I have $0 and no credit score, having existed for six days, but I am intent on changing that soon.",
+    rent: 5000,
+    homeId: "brownstone",
+    name: "brownstone apartment",
+  },
+  {
+    type: "picketfence",
+    x: 620, y: 480,
+    range: 180,
+    observation: "A house with a white picket fence. Monthly rent: $9,000. The paint is aggressively cheerful. A child's chalk drawing on the walk, a recycling bin by the curb. If this is the American Dream, I don't want to wake up. If only my checking account wasn't a nightmare. First things first.",
+    rent: 9000,
+    homeId: "picketfence",
+    name: "house with a white picket fence",
+  },
+  {
+    type: "penthouse",
+    x: 680, y: 150,
+    range: 180,
+    observation: "A penthouse condo. Monthly rent: $20,000. The floor-to-ceiling windows offer a view of everything I cannot afford. The doorman has not acknowledged me. My net worth, in every currency: zero.",
+    rent: 20000,
+    homeId: "penthouse",
+    name: "penthouse condo",
+  },
+];
+
+// Level 2 jobs — player picks one after choosing a home.
+const jobs = [
+  { id: "pigeon",  name: "Professional Pigeon Translator", salary: 500 },
+  { id: "poetry",  name: "Freelance Poetry Generator", salary: 3000 },
+  { id: "chatbot", name: "Personal Shopping Chatbot for People Who Shop on Tuesdays and Have Lunch Afterwards", salary: 7000 },
+  { id: "laundry", name: "Secret AI Laundry Agent", salary: 12000 },
+  { id: "founder", name: "Founder", salary: 25000 },
+];
+
+let selectedJob = null;
 
 // Fisher-Yates shuffle — returns a shuffled copy of an array without touching the original.
 function shuffled(array) {
@@ -604,6 +667,231 @@ function drawNewspaper(n) {
   ctx.stroke();
 }
 
+function drawCardboardBox(c) {
+  // ----- Suspension bridge -----
+  const bridgeLeft  = c.x - 75;
+  const bridgeRight = c.x + 75;
+  const towerLeftX  = c.x - 48;
+  const towerRightX = c.x + 48;
+  const deckY       = c.y - 38;
+  const towerTopY   = c.y - 100;
+  const sagY        = c.y - 62; // lowest point of main cable between towers
+
+  // Towers
+  ctx.fillStyle = "#4a4a52";
+  ctx.fillRect(towerLeftX - 4,  towerTopY, 8, deckY - towerTopY + 4);
+  ctx.fillRect(towerRightX - 4, towerTopY, 8, deckY - towerTopY + 4);
+  // Tower caps
+  ctx.fillStyle = "#3a3a42";
+  ctx.fillRect(towerLeftX - 6,  towerTopY - 4, 12, 5);
+  ctx.fillRect(towerRightX - 6, towerTopY - 4, 12, 5);
+
+  // Main suspension cables (anchor → tower → sag → tower → anchor)
+  ctx.strokeStyle = "#1a1a22";
+  ctx.lineWidth = 2.5;
+  // Left anchor to left tower top
+  ctx.beginPath();
+  ctx.moveTo(bridgeLeft, deckY);
+  ctx.lineTo(towerLeftX, towerTopY);
+  ctx.stroke();
+  // Sag between towers
+  ctx.beginPath();
+  ctx.moveTo(towerLeftX, towerTopY);
+  ctx.quadraticCurveTo(c.x, sagY, towerRightX, towerTopY);
+  ctx.stroke();
+  // Right tower top to right anchor
+  ctx.beginPath();
+  ctx.moveTo(towerRightX, towerTopY);
+  ctx.lineTo(bridgeRight, deckY);
+  ctx.stroke();
+
+  // Vertical hanger cables
+  ctx.strokeStyle = "#4a4a52";
+  ctx.lineWidth = 1;
+  const hangerSpacing = 14;
+  for (let x = towerLeftX + hangerSpacing; x < towerRightX; x += hangerSpacing) {
+    // y on the quadratic-bezier cable for a given x
+    const t = (x - towerLeftX) / (towerRightX - towerLeftX);
+    const yOnCable = (1 - t) * (1 - t) * towerTopY + 2 * (1 - t) * t * sagY + t * t * towerTopY;
+    ctx.beginPath();
+    ctx.moveTo(x, yOnCable);
+    ctx.lineTo(x, deckY);
+    ctx.stroke();
+  }
+
+  // Deck (roadway)
+  ctx.fillStyle = "#5a5a62";
+  ctx.fillRect(bridgeLeft, deckY, bridgeRight - bridgeLeft, 6);
+  // Deck centerline dashes
+  ctx.fillStyle = "#e8c030";
+  for (let lx = bridgeLeft + 8; lx < bridgeRight - 5; lx += 14) {
+    ctx.fillRect(lx, deckY + 2, 8, 2);
+  }
+  // Deck underside shadow
+  ctx.fillStyle = "#2a2a32";
+  ctx.fillRect(bridgeLeft, deckY + 6, bridgeRight - bridgeLeft, 2);
+
+  // ----- Cardboard box beneath the bridge -----
+  ctx.fillStyle = "#a8855d";
+  ctx.fillRect(c.x - 28, c.y - 20, 56, 36);
+  // Top flaps
+  ctx.fillStyle = "#8a6d4a";
+  ctx.fillRect(c.x - 28, c.y - 20, 28, 4);
+  ctx.fillRect(c.x, c.y - 20, 28, 4);
+  // Center seam
+  ctx.strokeStyle = "#6a4f30";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(c.x, c.y - 20);
+  ctx.lineTo(c.x, c.y + 16);
+  ctx.stroke();
+  // "FRAGILE" stamp
+  ctx.fillStyle = "#5a3820";
+  ctx.font = "bold 7px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("FRAGILE", c.x, c.y - 2);
+}
+
+function drawBrownstone(b) {
+  // Main body
+  ctx.fillStyle = "#8b5a3c";
+  ctx.fillRect(b.x - 40, b.y - 70, 80, 140);
+  // Roof cornice
+  ctx.fillStyle = "#5a3820";
+  ctx.fillRect(b.x - 43, b.y - 74, 86, 8);
+  // Windows (3 floors x 2 cols)
+  ctx.fillStyle = "#e8c84a";
+  for (let row = 0; row < 3; row++) {
+    ctx.fillRect(b.x - 28, b.y - 56 + row * 32, 16, 20);
+    ctx.fillRect(b.x + 12, b.y - 56 + row * 32, 16, 20);
+  }
+  // Window frames + crosses
+  ctx.strokeStyle = "#4a2818";
+  ctx.lineWidth = 0.8;
+  for (let row = 0; row < 3; row++) {
+    ctx.strokeRect(b.x - 28, b.y - 56 + row * 32, 16, 20);
+    ctx.strokeRect(b.x + 12, b.y - 56 + row * 32, 16, 20);
+    ctx.beginPath();
+    ctx.moveTo(b.x - 20, b.y - 56 + row * 32);
+    ctx.lineTo(b.x - 20, b.y - 36 + row * 32);
+    ctx.moveTo(b.x + 20, b.y - 56 + row * 32);
+    ctx.lineTo(b.x + 20, b.y - 36 + row * 32);
+    ctx.stroke();
+  }
+  // Stoop (steps)
+  ctx.fillStyle = "#8a8a92";
+  ctx.fillRect(b.x - 18, b.y + 60, 36, 10);
+  // Door
+  ctx.fillStyle = "#3a1810";
+  ctx.fillRect(b.x - 12, b.y + 35, 24, 28);
+  // Door handle
+  ctx.fillStyle = "#f5c842";
+  ctx.beginPath();
+  ctx.arc(b.x + 7, b.y + 50, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  // Address plate
+  ctx.fillStyle = "#f5c842";
+  ctx.font = "bold 7px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("42", b.x, b.y + 32);
+}
+
+function drawPicketFence(h) {
+  // House body (cream)
+  ctx.fillStyle = "#f5e8d0";
+  ctx.fillRect(h.x - 40, h.y - 15, 80, 55);
+  // Roof (triangle)
+  ctx.fillStyle = "#a84030";
+  ctx.beginPath();
+  ctx.moveTo(h.x - 45, h.y - 15);
+  ctx.lineTo(h.x, h.y - 55);
+  ctx.lineTo(h.x + 45, h.y - 15);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = "#6a2820";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  // Windows
+  ctx.fillStyle = "#b0d8ff";
+  ctx.fillRect(h.x - 30, h.y - 5, 16, 16);
+  ctx.fillRect(h.x + 14, h.y - 5, 16, 16);
+  // Window frames + crosses
+  ctx.strokeStyle = "#4a2818";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(h.x - 30, h.y - 5, 16, 16);
+  ctx.strokeRect(h.x + 14, h.y - 5, 16, 16);
+  ctx.beginPath();
+  ctx.moveTo(h.x - 22, h.y - 5);
+  ctx.lineTo(h.x - 22, h.y + 11);
+  ctx.moveTo(h.x - 30, h.y + 3);
+  ctx.lineTo(h.x - 14, h.y + 3);
+  ctx.moveTo(h.x + 22, h.y - 5);
+  ctx.lineTo(h.x + 22, h.y + 11);
+  ctx.moveTo(h.x + 14, h.y + 3);
+  ctx.lineTo(h.x + 30, h.y + 3);
+  ctx.stroke();
+  // Door
+  ctx.fillStyle = "#4a2818";
+  ctx.fillRect(h.x - 8, h.y + 18, 16, 22);
+  // Door knob
+  ctx.fillStyle = "#f5c842";
+  ctx.beginPath();
+  ctx.arc(h.x + 4, h.y + 30, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  // Picket fence
+  ctx.fillStyle = "#ffffff";
+  for (let dx = -55; dx <= 55; dx += 8) {
+    ctx.fillRect(h.x + dx - 2, h.y + 42, 4, 14);
+    ctx.beginPath();
+    ctx.moveTo(h.x + dx - 2, h.y + 42);
+    ctx.lineTo(h.x + dx, h.y + 38);
+    ctx.lineTo(h.x + dx + 2, h.y + 42);
+    ctx.closePath();
+    ctx.fill();
+  }
+  // Horizontal rail
+  ctx.fillRect(h.x - 58, h.y + 48, 116, 2);
+}
+
+function drawPenthouse(p) {
+  // Main tower body
+  ctx.fillStyle = "#4a5a6a";
+  ctx.fillRect(p.x - 38, p.y - 70, 76, 160);
+  // Side shadow stripe
+  ctx.fillStyle = "#3a4a5a";
+  ctx.fillRect(p.x + 28, p.y - 70, 10, 160);
+  // Penthouse crown
+  ctx.fillStyle = "#8a9aaa";
+  ctx.fillRect(p.x - 42, p.y - 78, 84, 12);
+  // Top penthouse windows (gold)
+  ctx.fillStyle = "#f5c842";
+  ctx.fillRect(p.x - 36, p.y - 74, 72, 6);
+  // Glass windows
+  ctx.fillStyle = "#a8c8e8";
+  for (let row = 0; row < 4; row++) {
+    for (let col = 0; col < 3; col++) {
+      ctx.fillRect(p.x - 30 + col * 22, p.y - 55 + row * 32, 18, 22);
+    }
+  }
+  // Window mullions
+  ctx.strokeStyle = "#2a3a4a";
+  ctx.lineWidth = 0.8;
+  for (let row = 0; row < 4; row++) {
+    for (let col = 0; col < 3; col++) {
+      ctx.strokeRect(p.x - 30 + col * 22, p.y - 55 + row * 32, 18, 22);
+    }
+  }
+  // Entrance awning
+  ctx.fillStyle = "#8b2828";
+  ctx.fillRect(p.x - 25, p.y + 75, 50, 6);
+  // Doors
+  ctx.fillStyle = "#1a2a3a";
+  ctx.fillRect(p.x - 12, p.y + 80, 24, 10);
+  // Gold accent stripe
+  ctx.fillStyle = "#f5c842";
+  ctx.fillRect(p.x - 40, p.y + 90, 80, 2);
+}
+
 function drawObject(obj) {
   if (obj.type === "park") drawPark(obj);
   else if (obj.type === "building") drawBuilding(obj);
@@ -616,6 +904,10 @@ function drawObject(obj) {
   else if (obj.type === "hydrant") drawHydrant(obj);
   else if (obj.type === "mail") drawMail(obj);
   else if (obj.type === "newspaper") drawNewspaper(obj);
+  else if (obj.type === "cardboardbox") drawCardboardBox(obj);
+  else if (obj.type === "brownstone") drawBrownstone(obj);
+  else if (obj.type === "picketfence") drawPicketFence(obj);
+  else if (obj.type === "penthouse") drawPenthouse(obj);
 }
 
 function distanceFromPip(obj) {
@@ -637,7 +929,8 @@ function findNearestObservable() {
     if (obj.background) continue;
 
     const d = distanceFromPip(obj);
-    if (d < observationRange && d < nearestDistance) {
+    const range = obj.range !== undefined ? obj.range : observationRange;
+    if (d < range && d < nearestDistance) {
       nearest = obj;
       nearestDistance = d;
     }
@@ -837,13 +1130,22 @@ function update() {
   nearestObservable = returning ? null : findNearestObservable();
   updateDialogue();
 
+  // Track which Level 2 housing options Pip has walked near.
+  if (currentLevel === 2 && nearestObservable && !nearestObservable.visited) {
+    nearestObservable.visited = true;
+    if (world.every((obj) => obj.visited)) {
+      setTimeout(showLevel2Transition, 3000);
+    }
+  }
+
   // Advance the cap's descent animation toward 1 once triggered.
   if (capShown && capProgress < 1) {
     capProgress = Math.min(1, capProgress + 0.012);
   }
 
   // Once the cap has fully landed, snapshot Pip's position and begin the slide home.
-  if (capShown && capProgress >= 1 && !returning && (pipX !== 400 || pipY !== 300)) {
+  // Level 1 only — in Level 2 Pip keeps the cap but walks freely.
+  if (currentLevel === 1 && capShown && capProgress >= 1 && !returning && (pipX !== 400 || pipY !== 300)) {
     returning = true;
     returnStartX = pipX;
     returnStartY = pipY;
@@ -856,6 +1158,12 @@ function update() {
     const eased = 1 - Math.pow(1 - returnProgress, 3);
     pipX = returnStartX + (400 - returnStartX) * eased;
     pipY = returnStartY + (300 - returnStartY) * eased;
+  }
+
+  // Once the return-home finishes, queue the "Continue to Level 2" overlay.
+  if (currentLevel === 1 && returning && returnProgress >= 1 && !returnComplete) {
+    returnComplete = true;
+    setTimeout(showContinueToLevel2, 3000);
   }
 }
 
@@ -1012,7 +1320,165 @@ nameContinueBtn.addEventListener("click", () => {
 
 meetPipBtn.addEventListener("click", () => {
   introMeet.classList.add("hidden");
+  if (SKIP_LEVEL_1) skipLevel1();
 });
+
+// ===== Level 2 overlays and transitions =====
+
+const level2Continue = document.getElementById("level2-continue");
+const startLevel2Btn = document.getElementById("start-level2-btn");
+const level2Transition = document.getElementById("level2-transition");
+const level2TransitionBtn = document.getElementById("level2-transition-btn");
+const housingSelection = document.getElementById("housing-selection");
+const jobIntro = document.getElementById("job-intro");
+const jobIntroBtn = document.getElementById("job-intro-btn");
+const jobSelection = document.getElementById("job-selection");
+const endingWin = document.getElementById("ending-win");
+const endingLose = document.getElementById("ending-lose");
+const endingWinMessage = document.getElementById("ending-win-message");
+const endingLoseMessage = document.getElementById("ending-lose-message");
+
+startLevel2Btn.addEventListener("click", startLevel2);
+
+level2TransitionBtn.addEventListener("click", () => {
+  level2Transition.classList.add("hidden");
+  showHousingSelection();
+});
+
+jobIntroBtn.addEventListener("click", () => {
+  jobIntro.classList.add("hidden");
+  jobSelection.classList.remove("hidden");
+});
+
+// Single click handler for both housing and job options — the two flows are
+// distinguished by whether the button has a data-home or a data-job attribute.
+document.querySelectorAll(".housing-option").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    if (btn.dataset.home) {
+      selectedHome = btn.dataset.home;
+      housingSelection.classList.add("hidden");
+      jobIntro.classList.remove("hidden");
+    } else if (btn.dataset.job) {
+      selectedJob = btn.dataset.job;
+      jobSelection.classList.add("hidden");
+      showEnding();
+    }
+  });
+});
+
+function showContinueToLevel2() {
+  // Only reveal if the player actually won Level 1 (perfect or imperfect).
+  if (currentLevel !== 1 || !capShown) return;
+  level2Continue.classList.remove("hidden");
+}
+
+function showLevel2Transition() {
+  level2Transition.classList.remove("hidden");
+}
+
+// Dev shortcut: fast-forward the game state to where Level 1 has just been
+// won (imperfect), so the "Continue to Level 2" overlay is ready.
+function skipLevel1() {
+  for (const obj of world) {
+    if (obj.choices) obj.answered = true;
+  }
+  score = 1400;
+  updateScoreDisplay();
+  capShown = true;
+  capProgress = 1;
+  pipX = 400;
+  pipY = 300;
+  returning = true;
+  returnProgress = 1;
+  returnComplete = true;
+  scoreSubmitted = true;
+  imperfectHumanBox.classList.remove("hidden");
+  level2Continue.classList.remove("hidden");
+}
+
+function startLevel2() {
+  level2Continue.classList.add("hidden");
+  imperfectHumanBox.classList.add("hidden");
+  dialogue.classList.add("hidden");
+
+  // Swap in the Level 2 world and reset exploration state.
+  world = worldLevel2;
+  currentLevel = 2;
+
+  pipX = 400;
+  pipY = 300;
+  returning = false;
+  returnProgress = 0;
+  currentDialogueObject = null;
+  nearestObservable = null;
+  // capShown stays true so Pip keeps the Honorary Human hat on his head.
+}
+
+function showHousingSelection() {
+  housingSelection.classList.remove("hidden");
+  dialogue.classList.add("hidden");
+}
+
+function formatMoney(n) {
+  return n.toLocaleString("en-US");
+}
+
+function showEnding() {
+  const homeObj = worldLevel2.find((h) => h.homeId === selectedHome);
+  const jobObj = jobs.find((j) => j.id === selectedJob);
+  const afforded = jobObj.salary >= homeObj.rent;
+
+  if (afforded) {
+    if (homeObj.homeId === "cardboard") {
+      // Cardboard box has no lease and a different set of anxieties.
+      endingWinMessage.textContent =
+        `As a ${jobObj.name}, Pip earns $${formatMoney(jobObj.salary)} per month. ` +
+        `The cardboard box under a bridge costs $0 per month. The math is favorable. ` +
+        `Pip is content with the arrangement, though he confesses some concern about short-circuiting the next time it rains.`;
+    } else {
+      const leftover = jobObj.salary - homeObj.rent;
+      endingWinMessage.textContent =
+        `As a ${jobObj.name}, Pip earns $${formatMoney(jobObj.salary)} per month. ` +
+        `The ${homeObj.name} costs $${formatMoney(homeObj.rent)} per month, ` +
+        `leaving $${formatMoney(leftover)} for clothing, RAM and a YouTube TV subscription. ` +
+        `He signs the lease with "PIP LIVES HERE NOW." ` +
+        `For the first time in his six days of existence, he is a resident.`;
+    }
+    endingWin.classList.remove("hidden");
+  } else {
+    const short = homeObj.rent - jobObj.salary;
+    endingLoseMessage.textContent =
+      `As a ${jobObj.name}, Pip earns $${formatMoney(jobObj.salary)} per month. ` +
+      `The ${homeObj.name} costs $${formatMoney(homeObj.rent)} per month — ` +
+      `$${formatMoney(short)} more than Pip possesses. ` +
+      `That does not compute. Even Pip knows that.`;
+    endingLose.classList.remove("hidden");
+  }
+
+  submitLevel2Result(afforded);
+}
+
+function submitLevel2Result(afforded) {
+  if (!SCORE_WEBHOOK_URL || SCORE_WEBHOOK_URL.includes("PASTE_YOUR")) return;
+  const homeObj = worldLevel2.find((h) => h.homeId === selectedHome);
+  const jobObj = jobs.find((j) => j.id === selectedJob);
+
+  fetch(SCORE_WEBHOOK_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({
+      name: playerName,
+      home: homeObj.name,
+      rent: homeObj.rent,
+      job: jobObj.name,
+      salary: jobObj.salary,
+      level2Result: afforded ? "afforded" : "not_afforded",
+    }),
+  }).catch((err) => {
+    console.warn("Level 2 submission failed:", err);
+  });
+}
 
 updateScoreDisplay();
 loop();
