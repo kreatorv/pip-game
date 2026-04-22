@@ -1337,6 +1337,8 @@ const endingWin = document.getElementById("ending-win");
 const endingLose = document.getElementById("ending-lose");
 const endingWinMessage = document.getElementById("ending-win-message");
 const endingLoseMessage = document.getElementById("ending-lose-message");
+const level2Bank = document.getElementById("level2-bank");
+const level2ComingSoon = document.getElementById("level2-coming-soon");
 
 startLevel2Btn.addEventListener("click", startLevel2);
 
@@ -1397,21 +1399,18 @@ function skipLevel1() {
 }
 
 function startLevel2() {
+  // Simplified Level 2: show a bank-account scene, then a "coming soon" popup.
+  // The full housing/jobs flow below is intentionally left in place but unreachable
+  // so we can reintroduce it when Level 2 proper is ready.
   level2Continue.classList.add("hidden");
   imperfectHumanBox.classList.add("hidden");
   dialogue.classList.add("hidden");
 
-  // Swap in the Level 2 world and reset exploration state.
-  world = worldLevel2;
-  currentLevel = 2;
+  level2Bank.classList.remove("hidden");
 
-  pipX = 400;
-  pipY = 300;
-  returning = false;
-  returnProgress = 0;
-  currentDialogueObject = null;
-  nearestObservable = null;
-  // capShown stays true so Pip keeps the Honorary Human hat on his head.
+  setTimeout(() => {
+    level2ComingSoon.classList.remove("hidden");
+  }, 2500);
 }
 
 function showHousingSelection() {
