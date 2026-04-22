@@ -392,6 +392,19 @@ canvas {
   margin-top: 18px;
 }
 
+.bank-scene-svg {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  display: block;
+  margin: 8px auto 0 auto;
+}
+
+/* Used by the "Coming Soon" popup so the bank scene shows through behind it. */
+.intro.intro-light-backdrop {
+  background: rgba(10, 10, 20, 0.6);
+}
+
 /* ===== Imperfect human box (sidebar reward for 1300-1450 score) ===== */
 
 .imperfect-human {
