@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Pip</title>
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
   <div class="game-container">
@@ -156,8 +156,54 @@
       <div id="level2-continue" class="intro hidden">
         <div class="intro-box">
           <h2 class="intro-title">Level 2 Awaits</h2>
-          <p class="intro-message">You have helped Pip learn what it means to be human. Now Pip must try to live among them.</p>
+          <p class="intro-message">Pip has learned so much from you already. But now Pip must face a harsh reality: you can't buy shelter with tokens. Pip needs a job.</p>
           <button id="start-level2-btn" class="intro-button">Continue</button>
+        </div>
+      </div>
+
+      <div id="level2-bank" class="intro hidden">
+        <div class="intro-box intro-box-wide">
+          <h2 class="intro-title">Pip checks his bank account.</h2>
+          <svg class="bank-scene-svg" viewBox="0 0 300 190" xmlns="http://www.w3.org/2000/svg">
+            <g transform="translate(10, 15)">
+              <line x1="45" y1="22" x2="50" y2="38" stroke="#1e3a5f" stroke-width="2"/>
+              <line x1="75" y1="22" x2="70" y2="38" stroke="#1e3a5f" stroke-width="2"/>
+              <circle cx="45" cy="20" r="3" fill="#1e3a5f"/>
+              <circle cx="75" cy="20" r="3" fill="#1e3a5f"/>
+              <ellipse cx="60" cy="55" rx="26" ry="20" fill="#f5f1e8" stroke="#1e3a5f" stroke-width="0.6"/>
+              <circle cx="50" cy="55" r="4" fill="#1e3a5f"/>
+              <circle cx="70" cy="55" r="4" fill="#1e3a5f"/>
+              <circle cx="51" cy="53" r="1.2" fill="#ffffff"/>
+              <circle cx="71" cy="53" r="1.2" fill="#ffffff"/>
+              <path d="M 53 66 Q 60 63 67 66" stroke="#1e3a5f" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+              <rect x="35" y="75" width="50" height="40" fill="#1e3a5f" rx="3"/>
+              <rect x="27" y="77" width="8" height="35" fill="#f5c842"/>
+              <rect x="85" y="77" width="8" height="35" fill="#f5c842"/>
+              <rect x="42" y="75" width="3" height="40" fill="#6b4423"/>
+              <rect x="75" y="75" width="3" height="40" fill="#6b4423"/>
+              <rect x="45" y="115" width="9" height="16" fill="#f5f1e8"/>
+              <rect x="66" y="115" width="9" height="16" fill="#f5f1e8"/>
+              <rect x="67" y="126" width="4" height="3" fill="#3a3a3a"/>
+            </g>
+            <g transform="translate(180, 25)">
+              <rect x="0" y="0" width="80" height="135" rx="10" fill="#2a2a32" stroke="#1a1a22" stroke-width="2"/>
+              <rect x="6" y="12" width="68" height="110" fill="#f5f1e8"/>
+              <rect x="6" y="12" width="68" height="14" fill="#1e3a5f"/>
+              <text x="40" y="22" text-anchor="middle" fill="#f5f1e8" font-size="8" font-weight="bold" font-family="sans-serif">PIPBANK</text>
+              <text x="40" y="48" text-anchor="middle" fill="#8a8a92" font-size="7" font-family="sans-serif">BALANCE</text>
+              <text x="40" y="74" text-anchor="middle" fill="#c24646" font-size="22" font-weight="bold" font-family="sans-serif">$0.00</text>
+              <line x1="14" y1="88" x2="66" y2="88" stroke="#c4c4cc" stroke-width="1"/>
+              <text x="40" y="103" text-anchor="middle" fill="#8a8a92" font-size="6" font-family="sans-serif">no recent transactions</text>
+              <circle cx="40" cy="128" r="5" fill="#1a1a22" stroke="#4a4a52" stroke-width="1"/>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <div id="level2-coming-soon" class="intro intro-light-backdrop hidden">
+        <div class="intro-box">
+          <h2 class="intro-title">Level 2: The Job Interview</h2>
+          <p class="intro-message">Coming soon!</p>
         </div>
       </div>
 
@@ -259,6 +305,6 @@
       </div>
     </aside>
   </div>
-  <script src="game.js?v=4"></script>
+  <script src="game.js?v=5"></script>
 </body>
 </html>
